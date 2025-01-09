@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TripAdvisor Reviews</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f2f2f2;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .review-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #00aa6c;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+            overflow: hidden;
+        }
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .rating {
+            color: #00aa6c;
+        }
+        .rating i {
+            color: #00aa6c;
+        }
+        .review-date {
+            color: #666;
+            font-size: 14px;
+        }
+        .review-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 12px 0;
+            color: #333;
+        }
+        .review-text {
+            color: #333;
+            line-height: 1.5;
+        }
+        .contribution-count {
+            color: #666;
+            font-size: 14px;
+        }
+        .read-more {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .read-more:hover {
+            color: #00aa6c;
+        }
+        .review-images {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            overflow-x: auto;
+        }
+        .review-image-thumb {
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .review-image-thumb:hover {
+            transform: scale(1.05);
+        }
+        .image-modal .modal-body {
+            text-align: center;
+            padding: 0;
+        }
+        .image-modal img {
+            max-width: 100%;
+            max-height: 80vh;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <h1 class="mb-4">Latest Reviews</h1>
+        <div class="row" id="reviews-container">
+            {% for review in reviews %}
+            <div class="col-md-6 col-lg-4">
+                <div class="review-card">
+                    <div class="d-flex align-items-center">
+                        <div class="user-avatar me-3">
+                            {% if review.profile_pic %}
+                                <img src="{{ review.profile_pic }}" alt="{{ review.reviewer_name }}">
+                            {% else %}
+                                {{ review.reviewer_name[0]|upper if review.reviewer_name else 'A' }}
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="fw-bold">{{ review.reviewer_name }}</div>
+                            <div class="contribution-count">1 contribution</div>
+                        </div>
+                    </div>
+                    <div class="rating my-2">
+                        {% for i in range(5) %}
+                            {% if i < review.rating|int %}
+                                <i class="fas fa-circle"></i>
+                            {% else %}
+                                <i class="far fa-circle"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <h5 class="review-title">{{ review.title }}</h5>
+                    <p class="review-text">{{ review.content[:150] }}{% if review.content|length > 150 %}...{% endif %}</p>
+                    {% if review.content|length > 150 %}
+                        <a href="#" class="read-more" data-bs-toggle="modal" data-bs-target="#modal-{{ loop.index }}">...Read more</a>
+                    {% endif %}
+                    
+                    {% if review.review_images %}
+                    <div class="review-images">
+                        {% for image in review.review_images %}
+                        <img src="{{ image }}" alt="Review image" class="review-image-thumb" 
+                             onclick="openImageModal('{{ image }}')">
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="review-date mt-2">Written {{ review.date }}</div>
+                </div>
+            </div>
+
+            <!-- Modal for full review -->
+            <div class="modal fade" id="modal-{{ loop.index }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{ review.title }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="user-avatar me-3">
+                                    {% if review.profile_pic %}
+                                        <img src="{{ review.profile_pic }}" alt="{{ review.reviewer_name }}">
+                                    {% else %}
+                                        {{ review.reviewer_name[0]|upper if review.reviewer_name else 'A' }}
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ review.reviewer_name }}</div>
+                                    <div class="contribution-count">1 contribution</div>
+                                </div>
+                            </div>
+                            <div class="rating mb-3">
+                                {% for i in range(5) %}
+                                    {% if i < review.rating|int %}
+                                        <i class="fas fa-circle"></i>
+                                    {% else %}
+                                        <i class="far fa-circle"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p class="review-text">{{ review.content }}</p>
+                            
+                            {% if review.review_images %}
+                            <div class="review-images">
+                                {% for image in review.review_images %}
+                                <img src="{{ image }}" alt="Review image" class="review-image-thumb"
+                                     onclick="openImageModal('{{ image }}')">
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="review-date">Written {{ review.date }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Modal for full-size images -->
+    <div class="modal fade image-modal" id="imageModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <img id="fullSizeImage" src="" alt="Full size image">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-refresh the page every 5 minutes
+        setTimeout(() => window.location.reload(), 5 * 60 * 1000);
+
+        // Function to open image modal
+        function openImageModal(imageUrl) {
+            document.getElementById('fullSizeImage').src = imageUrl;
+            new bootstrap.Modal(document.getElementById('imageModal')).show();
+        }
+    </script>
+</body>
+</html>

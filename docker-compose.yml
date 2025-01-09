@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: python app.py
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - ./reviews.json:/app/reviews.json
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    depends_on:
+      - reviews-monitor
+
+  reviews-monitor:
+    build: .
+    command: python save_reviews.py
+    volumes:
+      - .:/app
+      - ./reviews.json:/app/reviews.json
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
