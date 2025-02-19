@@ -26,3 +26,4 @@ db.sqlite3
 *.sublime-workspace
 env/
 .env
+credentials.json
